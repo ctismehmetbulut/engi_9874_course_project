@@ -59,9 +59,8 @@ public class MerchantFrame extends JFrame implements MemoryChangeListener {
 
     private void refreshAll(boolean broadcastChange) {
         if (broadcastChange) {
-        MemoryStore.initializeAll();
-        MemoryChangeNotifier.notifyMemoryChanged();
-    }
+            MemoryChangeNotifier.notifyMemoryChanged();
+        }
         getContentPane().removeAll();
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));

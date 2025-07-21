@@ -8,16 +8,21 @@ public class CustomerDAO {
         String checkSql = "SELECT id FROM customers WHERE name = ?";
         String insertSql = "INSERT INTO customers (name, password) VALUES (?, ?)";
 
-        try (Connection conn = Database.getConnection();
-                PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+        Connection conn = null;
+        try {
+            conn = Database.getConnection();
+            
+            // Check if username already exists
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, name);
+                ResultSet rs = checkStmt.executeQuery();
 
-            checkStmt.setString(1, name);
-            ResultSet rs = checkStmt.executeQuery();
-
-            if (rs.next()) {
-                return false; // Username already exists
+                if (rs.next()) {
+                    return false; // Username already exists
+                }
             }
 
+            // Insert new customer
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, name);
                 insertStmt.setString(2, pin);
@@ -26,8 +31,7 @@ public class CustomerDAO {
                 try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int customerId = generatedKeys.getInt(1);
-                        Customer customer = new Customer(customerId, name, pin, 0.0); // Assuming balance = 0.0 on
-                                                                                      // signup
+                        Customer customer = new Customer(customerId, name, pin, 0.0); // Assuming balance = 0.0 on signup
                         MemoryStore.customers.put(customerId, customer);
                     }
                 }
@@ -35,13 +39,16 @@ public class CustomerDAO {
             }
 
         } catch (SQLException e) {
+            System.err.println("SQL Error during customer signup: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Failed to sign up customer", e);
         }
     }
 
     public static Integer authenticateCustomer(String name, String pin) {
         String sql = "SELECT id FROM customers WHERE name = ? AND password = ?";
-        try (PreparedStatement pstmt = Database.getConnection().prepareStatement(sql)) {
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name);
             pstmt.setString(2, pin);
             ResultSet rs = pstmt.executeQuery();
@@ -57,7 +64,8 @@ public class CustomerDAO {
 
     public static double getCustomerBalance(int customerId) {
         String sql = "SELECT balance FROM customers WHERE id = ?";
-        try (PreparedStatement pstmt = Database.getConnection().prepareStatement(sql)) {
+        try (Connection conn = Database.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {

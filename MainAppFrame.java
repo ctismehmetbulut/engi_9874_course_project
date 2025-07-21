@@ -8,7 +8,7 @@ public class MainAppFrame extends JFrame {
     private final HashMap<String, JPanel> views = new HashMap<>();
 
     public MainAppFrame() {
-        super("CardLayout App");
+        super("Java Application");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(400, 300);
         setLocationRelativeTo(null);

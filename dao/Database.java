@@ -6,23 +6,34 @@ public class Database {
     private static Connection connection;
     // private static final Connection connection = DatabaseConnector.connect();
     public static Connection getConnection() {
-        if (connection == null) {
+        if (connection == null || isConnectionClosed()) {
             connect();
         }
         return connection;
     }
+    
+    private static boolean isConnectionClosed() {
+        try {
+            return connection.isClosed();
+        } catch (SQLException e) {
+            return true; // Assume closed if we can't check
+        }
+    }
 
     public static Connection connect() {
         String dbFilePath = "data.db";
-        if (connection == null) {
-            try {
-                String url = "jdbc:sqlite:" + dbFilePath;
-                connection = DriverManager.getConnection(url);
-                System.out.println("Connected to database: " + new File(dbFilePath).getAbsolutePath());
-                ensureSchema("schema.sql");
-            } catch (SQLException e) {
-                throw new RuntimeException("Database connection failed", e);
+        try {
+            // Close existing connection if it exists
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
             }
+            
+            String url = "jdbc:sqlite:" + dbFilePath;
+            connection = DriverManager.getConnection(url);
+            System.out.println("Connected to database: " + new File(dbFilePath).getAbsolutePath());
+            ensureSchema("schema.sql");
+        } catch (SQLException e) {
+            throw new RuntimeException("Database connection failed", e);
         }
         return connection;
     }
