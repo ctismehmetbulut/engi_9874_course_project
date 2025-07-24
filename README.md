@@ -187,6 +187,15 @@ javac -cp ".;sqlite-jdbc-3.8.9.1.jar" Main.java
 java -ea -cp ".;sqlite-jdbc-3.8.9.1.jar" Main
 ```
 
+The system need
+https://jdk.java.net/24/
+and
+https://chocolatey.org/install
+then
+```bash
+choco install make
+```
+
 ## Database Schema
 **Tables:**
 - **customers** (id, name, password, balance)
